@@ -9,6 +9,16 @@ package sos;
 public class SOS
 {
     //======================================================================
+    //Constants
+    //----------------------------------------------------------------------
+
+    //These constants define the system calls this OS can currently handle
+    public static final int SYSCALL_EXIT     = 0;    /* exit the current program */
+    public static final int SYSCALL_OUTPUT   = 1;    /* outputs a number */
+    public static final int SYSCALL_GETPID   = 2;    /* get current process id */
+    public static final int SYSCALL_COREDUMP = 9;    /* print process state and exit */
+    
+    //======================================================================
     //Member variables
     //----------------------------------------------------------------------
 
@@ -109,7 +119,7 @@ public class SOS
         //Set the PC at the beginning of the program. 
         m_CPU.setPC(m_CPU.getBASE());
         //Set the SP to the opposite side of the RAM.
-        m_CPU.setSP(m_RAM.getSize() - 1);
+        m_CPU.setSP(m_CPU.getLIM() - 1);
     }//createProcess
         
     /*======================================================================
@@ -124,5 +134,11 @@ public class SOS
      *----------------------------------------------------------------------
      */
     
-    //None yet!
+    //<insert header comment here>
+    public void systemCall()
+    {
+        //%%%REPLACE THESE LINES WITH APPROPRIATE CODE
+        System.out.println("TRAP handled!");
+        System.exit(0);
+    }//systemCall
 };//class SOS

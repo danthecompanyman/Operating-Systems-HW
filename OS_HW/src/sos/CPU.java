@@ -67,7 +67,30 @@ public class CPU
      * @see RAM
      **/
     private RAM m_RAM = null;
+    
+    /**
+     * a reference to the trap handler for this CPU.  On a real CPU this would
+     * simply be an address that the PC register is set to.
+     */
+    private TrapHandler m_TH = null;
 
+    //======================================================================
+    //Callback Interface
+    //----------------------------------------------------------------------
+    /**
+     * TrapHandler
+     *
+     * This interface should be implemented by the operating system to allow the
+     * simulated CPU to generate hardware interrupts and system calls.
+     */
+    public interface TrapHandler
+    {
+        void interruptIllegalMemoryAccess(int addr);
+        void interruptDivideByZero();
+        void interruptIllegalInstruction(int[] instr);
+        void systemCall();
+    };//interface TrapHandler
+    
     //======================================================================
     //Methods
     //----------------------------------------------------------------------
@@ -332,6 +355,16 @@ public class CPU
     }//run
     
     /**
+     * registerTrapHandler
+     *
+     * allows SOS to register itself as the trap handler 
+     */
+    public void registerTrapHandler(TrapHandler th)
+    {
+        m_TH = th;
+    }//registerTrapHandler
+    
+    /**
      * Pop a value off the stack if there's anything to pop off.
      * 
      * @param val   The index of the register to pop the value to.
@@ -382,4 +415,5 @@ public class CPU
             System.out.println("ERROR: Trying to touch RAM outside of allocated space.");
             return false;
     }//validateRAMLoc
+
 };//class CPU
