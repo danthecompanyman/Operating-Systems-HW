@@ -13,3 +13,7 @@ Check the list of commits to see each finished homework assignment.
 Homework 1
 ----------
 Complete just enough code that the simulation can run a simple program.
+
+Homework 2
+----------
+Support for systems calls and interrupts should be implemented in SOS.java.
