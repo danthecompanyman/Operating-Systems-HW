@@ -371,7 +371,7 @@ public class CPU
      */
     public void popStack(int index)
     {
-        if (getSP() < m_RAM.getSize())
+        if (getSP() <= getLIM())
         {
             m_registers[index] = m_RAM.read(getSP());
             setSP(getSP() + 1);
@@ -390,7 +390,7 @@ public class CPU
      */
     public void pushStack(int val)
     {
-        if (getSP() > getLIM())
+        if (getSP() > getBASE())
         {
             setSP(getSP() - 1);
             m_RAM.write(getSP(), val);
