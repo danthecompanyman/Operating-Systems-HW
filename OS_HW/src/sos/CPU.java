@@ -54,7 +54,7 @@ public class CPU
     /**
      * specifies whether the CPU should output details of its work
      **/
-    private boolean m_verbose = true;
+    private boolean m_verbose = false;
 
     /**
      * This array contains all the registers on the "chip".
@@ -294,55 +294,109 @@ public class CPU
             
             //Decode and execute the instruction.
             //If we run into a TRAP, end the program.
+            
+            //Also every instruction that accesses one of the "R" labeled registers
+            // is checked to make sure that it's a valid index.
             switch(instr[0])
             {
                 case SET:
+                    if(!validateRegisterIndex(new int[]{instr[1]}))
+                        m_TH.interruptIllegalInstruction(instr);
+
                     m_registers[instr[1]] = instr[2];
                     break;
+                    
                 case ADD:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2], instr[3]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     m_registers[instr[1]] = m_registers[instr[2]] + m_registers[instr[3]];
                     break;
+                    
                 case SUB:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2], instr[3]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     m_registers[instr[1]] = m_registers[instr[2]] - m_registers[instr[3]];
                     break;
+                    
                 case MUL:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2], instr[3]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     m_registers[instr[1]] = m_registers[instr[2]] * m_registers[instr[3]];
                     break;
+                    
                 case DIV:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2], instr[3]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
+                    //Check that they're not dividing by zero
+                    if(m_registers[instr[3]] == 0)
+                        m_TH.interruptDivideByZero();
                     m_registers[instr[1]] = m_registers[instr[2]] / m_registers[instr[3]];
                     break;
+                    
                 case COPY:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     m_registers[instr[1]] = m_registers[instr[2]];
                     break;
+                    
                 case BRANCH:
                     setPC(instr[1] + getBASE() - instr.length);
                     break;
+                    
                 case BNE:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     if (m_registers[instr[1]] != m_registers[instr[2]])
                         setPC(instr[3] + getBASE() - instr.length);
                     break;
+                    
                 case BLT:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     if (m_registers[instr[1]] < m_registers[instr[2]])
                         setPC(instr[3] + getBASE() - instr.length);
                     break;
+                    
                 case POP:
                     popStack(instr[1]);
                     break;
+                    
                 case PUSH:
+                    if(!validateRegisterIndex(new int[]{instr[1]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     pushStack(m_registers[instr[1]]);
                     break;
+                    
                 case LOAD:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     if (validateRAMLoc(m_registers[instr[2]]))
                         m_registers[instr[1]] = m_RAM.read(m_registers[instr[2]]);
                     break;
+                    
                 case SAVE:
+                    if(!validateRegisterIndex(new int[]{instr[1], instr[2]}))
+                        m_TH.interruptIllegalInstruction(instr);
+                    
                     if (validateRAMLoc(m_registers[instr[2]]))
                         m_RAM.write(m_registers[instr[2]], m_registers[instr[1]]);
                     break;
+                    
                 case TRAP:
                     m_TH.systemCall();
+                    break;
+                    
                 default:        // should never be reached
-                    System.out.println("?? ");
+                    m_TH.interruptIllegalInstruction(instr);
                     break;          
             }//switch
             
@@ -401,8 +455,6 @@ public class CPU
     }//popStack
     
     /**
-     * pushStack
-     * 
      * Push a value onto the stack if we aren't overriding 
      * a program's allocated space.
      * 
@@ -432,8 +484,24 @@ public class CPU
         if(ramLoc >= getBASE() && ramLoc <= getLIM())
             return true;
         else
-            System.out.println("ERROR: Trying to touch RAM outside of allocated space.");
+            m_TH.interruptIllegalMemoryAccess(ramLoc);
             return false;
     }//validateRAMLoc
+    
+    /**
+     * validateRegisterIndex
+     * 
+     * Check that a given list of register indices are for valid register.
+     *  
+     * @param registerIndices
+     * @return True if all are valid.  False otherwise.
+     */
+    public boolean validateRegisterIndex(int[] registerIndices)
+    {
+        for(int rIndex : registerIndices)
+            if(rIndex < 0 || rIndex > 4) return false;
+
+        return true;
+    }//validateRegisterIndex
 
 };//class CPU
