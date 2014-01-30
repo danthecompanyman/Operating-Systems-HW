@@ -201,7 +201,7 @@ public class CPU
      *
      * Prints the values of the registers.  Useful for debugging.
      */
-    private void regDump()
+    public void regDump()
     {
         for(int i = 0; i < NUMGENREG; i++)
             System.out.print("r" + i + "=" + m_registers[i] + " ");
@@ -340,7 +340,7 @@ public class CPU
                         m_RAM.write(m_registers[instr[2]], m_registers[instr[1]]);
                     break;
                 case TRAP:
-                    return;
+                    m_TH.systemCall();
                 default:        // should never be reached
                     System.out.println("?? ");
                     break;          
@@ -378,6 +378,26 @@ public class CPU
         }
         else
             System.out.println("ERROR: Nothing to pop off the stack.");
+    }//popStack
+    
+    /**
+     * Pop a value off the stack if there's anything to pop off.
+     * 
+     * @return The value popped off the stack
+     */
+    public int popStack()
+    {
+        if (getSP() <= getLIM())
+        {
+            int returnVal = m_RAM.read(getSP());
+            setSP(getSP() + 1);
+            return returnVal;
+        }
+        else
+        {
+            System.out.println("ERROR: Nothing to pop off the stack.");
+            return -1;
+        }
     }//popStack
     
     /**

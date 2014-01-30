@@ -29,7 +29,7 @@ public class Sim
         SOS os = new SOS(cpu, ram);
 
         Program prog = new Program();
-        if (prog.load("crazycount.asm", true) != 0)
+        if (prog.load("getpid.asm", true) != 0)
             return; //Error loading program so exit
 
         os.createProcess(prog, 300);

@@ -1,12 +1,14 @@
 package sos;
 
+import java.util.Arrays;
+
 /**
  * This class contains the simulated operating system (SOS).  Realistically it
  * would run on the same processor (CPU) that it is managing but instead it uses
  * the real-world processor in order to allow a focus on the essentials of
  * operating system design using a high level programming language.
  */
-public class SOS
+public class SOS implements CPU.TrapHandler
 {
     //======================================================================
     //Constants
@@ -55,6 +57,8 @@ public class SOS
         //Init member list
         m_CPU = c;
         m_RAM = r;
+        
+        m_CPU.registerTrapHandler(this);
     }//SOS ctor
     
     /**
@@ -101,7 +105,13 @@ public class SOS
      *----------------------------------------------------------------------
      */
 
-    //insert method header here
+    /**
+     * Create a process out of the given program and allocate the necessary space
+     * for that program in our RAM.
+     * 
+     * @param prog      - The program to create the process for.
+     * @param allocSize - The amount of memory to allocate for the program.
+     */
     public void createProcess(Program prog, int allocSize)
     {
         //Compile the program into an array of int.
@@ -127,18 +137,102 @@ public class SOS
      *----------------------------------------------------------------------
      */
 
-    //None yet!
+    /**
+     * Interrupt the current process due to an illegal memory access and end the process.
+     * 
+     * @param addr - The illegal address that is trying to be accessed
+     */
+    @Override
+    public void interruptIllegalMemoryAccess(int addr)
+    {
+        System.out.println("ERROR: Illegal Memory Access at Address " + addr);
+        System.exit(0);
+    }
+
+    /**
+     * Interrupt the current process due to an attempt to divide by zero and end the process.
+     */
+    @Override
+    public void interruptDivideByZero()
+    {
+        System.out.println("ERROR: Division by Zero");
+        System.exit(0);
+    }
+
+    /**
+     * Interrupt the current process due to the attempted execution of an illegal instruction
+     * and end the process.
+     * 
+     * @param instr - The illegal instruction that is trying to execute.
+     */
+    @Override
+    public void interruptIllegalInstruction(int[] instr)
+    {
+        System.out.println("ERROR: Illegal Instruction Attempted: " + Arrays.toString(instr));
+        System.exit(0);
+    }
     
     /*======================================================================
      * System Calls
      *----------------------------------------------------------------------
      */
     
-    //<insert header comment here>
+    /**
+     * Execute a system call based on the most recent value on the stack.
+     */
     public void systemCall()
     {
-        //%%%REPLACE THESE LINES WITH APPROPRIATE CODE
-        System.out.println("TRAP handled!");
-        System.exit(0);
+        switch (m_CPU.popStack())
+        {
+            case SYSCALL_EXIT:
+                systemCallExit();
+                break;
+            case SYSCALL_OUTPUT:
+                systemCallOutput();
+                break;
+            case SYSCALL_GETPID:
+                systemCallGetPID();
+                break;
+            case SYSCALL_COREDUMP:
+                systemCallCoreDump();
+                break;
+            default:
+                return; //This shouldn't happen
+        }
     }//systemCall
+
+    /**
+     * Perform a core dump and end the current process.
+     */
+    private void systemCallCoreDump()
+    {
+        m_CPU.regDump();
+        for (int i = 0; i < 3; ++i)
+            System.out.println(m_CPU.popStack());
+        systemCallExit();// TODO ask Nux if we have to come in through systemCAll() again.
+    }
+
+    /**
+     * Push the ID of the current process onto the stack.
+     */
+    private void systemCallGetPID()
+    {
+        m_CPU.pushStack(42);
+    }
+
+    /**
+     * Output the topmost value on the stack.
+     */
+    private void systemCallOutput()
+    {
+        System.out.println("OUTPUT: " + m_CPU.popStack());
+    }
+
+    /**
+     * End the current process.
+     */
+    private void systemCallExit()
+    {
+        System.exit(0);
+    }
 };//class SOS
