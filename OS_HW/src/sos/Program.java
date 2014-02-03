@@ -1,6 +1,5 @@
 package sos;
 
-
 import java.io.*;
 import java.util.ArrayList;
 

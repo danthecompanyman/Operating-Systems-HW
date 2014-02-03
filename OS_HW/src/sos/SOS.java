@@ -38,11 +38,6 @@ public class SOS implements CPU.TrapHandler
      * The RAM attached to the CPU.
      **/
     private RAM m_RAM = null;
-    
-    /**
-     * Extra space set aside for stack and heap.
-     **/
-    private int m_stackAndHeapSpace = 50;
 
     /*======================================================================
      * Constructors & Debugging
@@ -145,7 +140,7 @@ public class SOS implements CPU.TrapHandler
     @Override
     public void interruptIllegalMemoryAccess(int addr)
     {
-        System.out.println("ERROR: Illegal Memory Access at Address " + addr);
+        System.out.println("\nERROR: Illegal Memory Access at Address " + addr);
         System.exit(0);
     }
 
@@ -155,7 +150,7 @@ public class SOS implements CPU.TrapHandler
     @Override
     public void interruptDivideByZero()
     {
-        System.out.println("ERROR: Division by Zero");
+        System.out.println("\nERROR: Division by Zero");
         System.exit(0);
     }
 
@@ -168,7 +163,7 @@ public class SOS implements CPU.TrapHandler
     @Override
     public void interruptIllegalInstruction(int[] instr)
     {
-        System.out.println("ERROR: Illegal Instruction Attempted: " + Arrays.toString(instr));
+        System.out.println("\nERROR: Illegal Instruction Attempted: " + Arrays.toString(instr));
         System.exit(0);
     }
     
@@ -208,7 +203,8 @@ public class SOS implements CPU.TrapHandler
     {
         m_CPU.regDump();
         for (int i = 0; i < 3; ++i)
-            System.out.println(m_CPU.popStack());
+            if (m_CPU.getSP() <= m_CPU.getLIM()) 
+                System.out.println(m_CPU.popStack());
         systemCallExit();// TODO ask Nux if we have to come in through systemCAll() again.
     }
 
@@ -225,7 +221,7 @@ public class SOS implements CPU.TrapHandler
      */
     private void systemCallOutput()
     {
-        System.out.println("OUTPUT: " + m_CPU.popStack());
+        System.out.println("\nOUTPUT: " + m_CPU.popStack());
     }
 
     /**
