@@ -16,7 +16,7 @@ Complete just enough code that the simulation can run a simple program.
 
 Homework 2
 ----------
-Support for four systems calls and three interrupts should be implemented in SOS.java.
+Support for four systems calls and three interrupts should be implemented in SOS.java:
 
 * System Calls
   * systemCallCoreDump: Perform a core dump and end the current process.
