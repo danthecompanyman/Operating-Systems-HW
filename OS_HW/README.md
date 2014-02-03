@@ -16,4 +16,17 @@ Complete just enough code that the simulation can run a simple program.
 
 Homework 2
 ----------
-Support for systems calls and interrupts should be implemented in SOS.java.
+Support for four systems calls and three interrupts should be implemented in SOS.java.
+
+* System Calls
+  * systemCallCoreDump: Perform a core dump and end the current process.
+  * systemCallGetPID: Push the ID of the current process onto the stack.
+  * systemCalOutput: Output the topmost value on the stack.
+  * systemCallExit: End the current process.
+
+* Interrupts
+  * interruptIllegalMemoryAccess: Interrupt the current process due to an illegal memory access.
+  * interruptDivideByZero: Interrupt the current process due to an attempt to divide by zero.
+  * interruptIllegalInstruction: Interrupt the current process due to an attempted execution of an illegal instruction.
+
+All interrupts end with the destruction of the current process.
