@@ -365,14 +365,13 @@ public class CPU
                     break;
                     
                 case POP:
-                    popStack(instr[1]);
+                    if(!popStack(instr[1]))
+                        m_TH.interruptIllegalInstruction(instr);
                     break;
                     
                 case PUSH:
-                    if(!validateRegisterIndex(new int[]{instr[1]}))
+                    if(!validateRegisterIndex(new int[]{instr[1]}) || !pushStack(m_registers[instr[1]]))
                         m_TH.interruptIllegalInstruction(instr);
-                    
-                    pushStack(m_registers[instr[1]]);
                     break;
                     
                 case LOAD:
@@ -422,22 +421,24 @@ public class CPU
      * Pop a value off the stack if there's anything to pop off.
      * 
      * @param val   The index of the register to pop the value to.
+     * @return True if the operation was successful.  False otherwise.
      */
-    public void popStack(int index)
+    public boolean popStack(int index)
     {
         if (getSP() <= getLIM())
         {
             m_registers[index] = m_RAM.read(getSP());
             setSP(getSP() + 1);
+            return true;
         }
         else
-            System.out.println("ERROR: Nothing to pop off the stack.");
+            return false;
     }//popStack
     
     /**
      * Pop a value off the stack if there's anything to pop off.
      * 
-     * @return The value popped off the stack
+     * @return The value popped off the stack. -1 if the operation was unsuccesful.
      */
     public int popStack()
     {
@@ -448,10 +449,7 @@ public class CPU
             return returnVal;
         }
         else
-        {
-            System.out.println("ERROR: Nothing to pop off the stack.");
             return -1;
-        }
     }//popStack
     
     /**
@@ -459,16 +457,18 @@ public class CPU
      * a program's allocated space.
      * 
      * @param val   The value to push onto the stack.
+     * @return True if the operation was successful.  False otherwise.
      */
-    public void pushStack(int val)
+    public boolean pushStack(int val)
     {
         if (getSP() > getBASE())
         {
             setSP(getSP() - 1);
             m_RAM.write(getSP(), val);
+            return true;
         }
         else
-            System.out.println("ERROR: Cannot push anything more to the stack.");
+            return false;
     }//pushStack
     
     /**
