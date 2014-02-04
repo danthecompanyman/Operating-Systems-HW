@@ -205,7 +205,7 @@ public class SOS implements CPU.TrapHandler
         for (int i = 0; i < 3; ++i)
             if (m_CPU.getSP() <= m_CPU.getLIM()) 
                 System.out.println(m_CPU.popStack());
-        systemCallExit();// TODO ask Nux if we have to come in through systemCAll() again.
+        systemCallExit();
     }
 
     /**

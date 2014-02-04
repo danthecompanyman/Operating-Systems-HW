@@ -196,7 +196,8 @@ public class Program
         l.addr = m_prog.size();
         m_labels.add(l);
 
-        if (m_verbose) System.out.print("parsed label '" + l.name + "' at address " + l.addr);
+        if (m_verbose) 
+            System.out.print("parsed label '" + l.name + "' at address " + l.addr);
 
         return 0;
     }//parseLabel
