@@ -1,6 +1,8 @@
 package sos;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Vector;
 
 /**
  * This class contains the simulated operating system (SOS).  Realistically it
@@ -18,6 +20,10 @@ public class SOS implements CPU.TrapHandler
     public static final int SYSCALL_EXIT     = 0;    /* exit the current program */
     public static final int SYSCALL_OUTPUT   = 1;    /* outputs a number */
     public static final int SYSCALL_GETPID   = 2;    /* get current process id */
+    public static final int SYSCALL_OPEN     = 3;    /* access a device */
+    public static final int SYSCALL_CLOSE    = 4;    /* release a device */
+    public static final int SYSCALL_READ     = 5;    /* get input from device */
+    public static final int SYSCALL_WRITE    = 6;    /* send output to device */
     public static final int SYSCALL_COREDUMP = 9;    /* print process state and exit */
     
     //======================================================================
@@ -38,6 +44,16 @@ public class SOS implements CPU.TrapHandler
      * The RAM attached to the CPU.
      **/
     private RAM m_RAM = null;
+    
+    /**
+     * The ID of the current process
+     */
+    private int m_currProcess;
+    
+    /**
+     * The list of devices "installed" in the system.
+     */
+    private ArrayList<DeviceInfo> m_devices = null;
 
     /*======================================================================
      * Constructors & Debugging
@@ -52,6 +68,8 @@ public class SOS implements CPU.TrapHandler
         //Init member list
         m_CPU = c;
         m_RAM = r;
+        m_currProcess = 42;
+        m_devices = new ArrayList<DeviceInfo>();
         
         m_CPU.registerTrapHandler(this);
     }//SOS ctor
@@ -86,7 +104,19 @@ public class SOS implements CPU.TrapHandler
      *----------------------------------------------------------------------
      */
 
-    //None yet!
+    /**
+     * registerDevice
+     *
+     * adds a new device to the list of devices managed by the OS
+     *
+     * @param dev     the device driver
+     * @param id      the id to assign to this device
+     * 
+     */
+    public void registerDevice(Device dev, int id)
+    {
+        m_devices.add(new DeviceInfo(dev, id));
+    }//registerDevice
     
     /*======================================================================
      * Process Management Methods
@@ -213,7 +243,7 @@ public class SOS implements CPU.TrapHandler
      */
     private void systemCallGetPID()
     {
-        m_CPU.pushStack(42);
+        m_CPU.pushStack(m_currProcess);
     }
 
     /**
@@ -231,4 +261,110 @@ public class SOS implements CPU.TrapHandler
     {
         System.exit(0);
     }
+    
+    //======================================================================
+    // Inner Classes
+    //----------------------------------------------------------------------
+
+    /**
+     * class ProcessControlBlock
+     *
+     * This class contains information about a currently active process.
+     */
+    private class ProcessControlBlock
+    {
+        /**
+         * a unique id for this process
+         */
+        private int processId = 0;
+
+        /**
+         * constructor
+         *
+         * @param pid        a process id for the process.  The caller is
+         *                   responsible for making sure it is unique.
+         */
+        public ProcessControlBlock(int pid)
+        {
+            this.processId = pid;
+        }
+
+        /**
+         * @return the current process' id
+         */
+        public int getProcessId()
+        {
+            return this.processId;
+        }
+
+        
+    }//class ProcessControlBlock
+
+    /**
+     * class DeviceInfo
+     *
+     * This class contains information about a device that is currently
+     * registered with the system.
+     */
+    private class DeviceInfo
+    {
+        /** every device has a unique id */
+        private int id;
+        /** a reference to the device driver for this device */
+        private Device device;
+        /** a list of processes that have opened this device */
+        private Vector<ProcessControlBlock> procs;
+
+        /**
+         * constructor
+         *
+         * @param d          a reference to the device driver for this device
+         * @param initID     the id for this device.  The caller is responsible
+         *                   for guaranteeing that this is a unique id.
+         */
+        public DeviceInfo(Device d, int initID)
+        {
+            this.id = initID;
+            this.device = d;
+            d.setId(initID);
+            this.procs = new Vector<ProcessControlBlock>();
+        }
+
+        /** @return the device's id */
+        public int getId()
+        {
+            return this.id;
+        }
+
+        /** @return this device's driver */
+        public Device getDevice()
+        {
+            return this.device;
+        }
+
+        /** Register a new process as having opened this device */
+        public void addProcess(ProcessControlBlock pi)
+        {
+            procs.add(pi);
+        }
+        
+        /** Register a process as having closed this device */
+        public void removeProcess(ProcessControlBlock pi)
+        {
+            procs.remove(pi);
+        }
+
+        /** Does the given process currently have this device opened? */
+        public boolean containsProcess(ProcessControlBlock pi)
+        {
+            return procs.contains(pi);
+        }
+        
+        /** Is this device currently not opened by any process? */
+        public boolean unused()
+        {
+            return procs.size() == 0;
+        }
+        
+    }//class DeviceInfo
 };//class SOS
