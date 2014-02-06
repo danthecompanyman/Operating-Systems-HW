@@ -1,7 +1,5 @@
 package sos;
 
-import java.util.*;
-
 /**
  * This class simulates a simple, sharable write-only device.  
  *
@@ -67,7 +65,6 @@ public class ConsoleDevice implements Device
     {
         return false;
     }
-     
     
     /**
      * isWriteable
@@ -83,7 +80,6 @@ public class ConsoleDevice implements Device
      * read
      *
      * not implemented
-     * 
      */
     public int read(int addr /*not used*/)
     {
@@ -91,12 +87,11 @@ public class ConsoleDevice implements Device
         return -1;
     }//read
     
-    
     /**
      * write
      *
      * method records a request for service from the device and as such is
-     * analagous to setting a value in a register on the device's controller.
+     * analogous to setting a value in a register on the device's controller.
      * As a result, the function does not check to make sure that the
      * device is ready for this request (that's the OS's job).
      */
@@ -104,5 +99,4 @@ public class ConsoleDevice implements Device
     {
         System.out.println("CONSOLE: " + data);
     }
-    
 };//class ConsoleDevice

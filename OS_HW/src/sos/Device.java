@@ -1,7 +1,5 @@
 package sos;
 
-import java.util.*;
-
 /**
  * This interface defines the necessary methods for creating a simulated device
  * driver for the SOS simulation.  
@@ -51,7 +49,6 @@ public interface Device
      */
     public boolean isReadable();
      
-    
     /**
      * isWriteable
      *
@@ -59,12 +56,11 @@ public interface Device
      */
     public boolean isWriteable();
      
-    
     /**
      * read
      *
      * method records a request for service from the device and as such is
-     * analagous to setting a value in a register on the device's controller.
+     * analogous to setting a value in a register on the device's controller.
      */
     public int read(int addr);
     
@@ -72,10 +68,9 @@ public interface Device
      * write
      *
      * method records a request for service from the device and as such is
-     * analagous to setting a value in a register on the device's controller.
+     * analogous to setting a value in a register on the device's controller.
      * As a result, the function does not check to make sure that the
      * device is ready for this request (that's the OS's job).
      */
     public void write(int addr, int data);
-    
 };//interface Device

@@ -48,12 +48,12 @@ public class SOS implements CPU.TrapHandler
     /**
      * The ID of the current process
      */
-    private int m_currProcess;
+    private ProcessControlBlock m_currProcess;
     
     /**
      * The list of devices "installed" in the system.
      */
-    private ArrayList<DeviceInfo> m_devices = null;
+    private Vector<DeviceInfo> m_devices = null;
 
     /*======================================================================
      * Constructors & Debugging
@@ -68,8 +68,8 @@ public class SOS implements CPU.TrapHandler
         //Init member list
         m_CPU = c;
         m_RAM = r;
-        m_currProcess = 42;
-        m_devices = new ArrayList<DeviceInfo>();
+        m_currProcess = new ProcessControlBlock(42);
+        m_devices = new Vector<DeviceInfo>();
         
         m_CPU.registerTrapHandler(this);
     }//SOS ctor
@@ -210,16 +210,28 @@ public class SOS implements CPU.TrapHandler
         switch (m_CPU.popStack())
         {
             case SYSCALL_EXIT:
-                systemCallExit();
+                sysCallExit();
                 break;
             case SYSCALL_OUTPUT:
-                systemCallOutput();
+                sysCallOutput();
                 break;
             case SYSCALL_GETPID:
-                systemCallGetPID();
+                sysCallGetPID();
+                break;
+            case SYSCALL_OPEN:
+                sysCallOpen();
+                break;
+            case SYSCALL_CLOSE:
+                sysCallClose();
+                break;
+            case SYSCALL_READ:
+                sysCallRead();
+                break;
+            case SYSCALL_WRITE:
+                sysCallWrite();
                 break;
             case SYSCALL_COREDUMP:
-                systemCallCoreDump();
+                sysCallCoreDump();
                 break;
             default:
                 return; //This shouldn't happen
@@ -229,27 +241,27 @@ public class SOS implements CPU.TrapHandler
     /**
      * Perform a core dump and end the current process.
      */
-    private void systemCallCoreDump()
+    private void sysCallCoreDump()
     {
         m_CPU.regDump();
         for (int i = 0; i < 3; ++i)
             if (m_CPU.getSP() <= m_CPU.getLIM()) 
                 System.out.println(m_CPU.popStack());
-        systemCallExit();
+        sysCallExit();
     }
 
     /**
      * Push the ID of the current process onto the stack.
      */
-    private void systemCallGetPID()
+    private void sysCallGetPID()
     {
-        m_CPU.pushStack(m_currProcess);
+        m_CPU.pushStack(m_currProcess.processId);
     }
 
     /**
      * Output the topmost value on the stack.
      */
-    private void systemCallOutput()
+    private void sysCallOutput()
     {
         System.out.println("\nOUTPUT: " + m_CPU.popStack());
     }
@@ -257,9 +269,57 @@ public class SOS implements CPU.TrapHandler
     /**
      * End the current process.
      */
-    private void systemCallExit()
+    private void sysCallExit()
     {
         System.exit(0);
+    }
+    
+    /**
+     * Register the current process to a new device
+     */
+    private void sysCallOpen()
+    {
+        //Get the device ID
+        int deviceID = m_CPU.popStack();
+        
+        //Add the current process to the device to indicate that it's using the device
+        findDevice(deviceID).procs.add(m_currProcess);
+    }
+    
+    /**
+     * 
+     */
+    private void sysCallClose()
+    {
+        //Get the device ID
+        int deviceID = m_CPU.popStack();
+        
+        //Remove the current process from the device to indicate that the device is no longer used
+        findDevice(deviceID).procs.remove(m_currProcess);
+    }
+    
+    private void sysCallRead()
+    {
+        
+    }
+    
+    private void sysCallWrite()
+    {
+        
+    }
+    
+    /**
+     * Helper method to find a device with a given ID in the Vector of DeviceInfos
+     * 
+     * @param deviceID  The ID of the device to find
+     * @return  The DeviceInfo instance matching the given ID
+     */
+    private DeviceInfo findDevice(int deviceID)
+    {
+        for (DeviceInfo di : m_devices)
+            if (di.getId() == deviceID)
+                return di;
+        return null;
     }
     
     //======================================================================
@@ -296,8 +356,6 @@ public class SOS implements CPU.TrapHandler
         {
             return this.processId;
         }
-
-        
     }//class ProcessControlBlock
 
     /**
@@ -365,6 +423,5 @@ public class SOS implements CPU.TrapHandler
         {
             return procs.size() == 0;
         }
-        
     }//class DeviceInfo
 };//class SOS
